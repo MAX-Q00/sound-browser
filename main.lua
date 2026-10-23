@@ -16,7 +16,7 @@
 
 local PLUGIN_NAME = "Sound Browser"
 local helpers = require("ui_helpers")
-helpers.VERSION = "0.1.20"
+helpers.VERSION = "0.1.21"
 local H = helpers
 
 -------------------------------------------------------------------------------
@@ -191,10 +191,19 @@ local ID_W      = 44    -- right-aligned (measured), up to 5 digits
 local CTRL_GAP  = 8     -- gap between controls / pager buttons
 local ROW_FAV_H = 18    -- Fav button height inside a 20 px row
 local PANEL_W   = 480   -- default width: name column about 336 px
-local FAV_X     = -(COL_PAD + FAV_W)                -- right-anchored x
-local STATUS_X  = FAV_X - COL_GAP - STATUS_W
-local ID_X      = STATUS_X - COL_GAP - ID_W
-local NAME_W    = ID_X - COL_GAP - COL_PAD          -- negative = fill minus this
+local FAV_X, STATUS_X, ID_X, NAME_W
+-- 0.1.21: adjustable columns (shared helpers.columns): the Sound/ID border
+-- is draggable (or < > buttons); widths persist, Settings resets them.
+local cols = nil
+local idHandle = nil
+local function recalcCols()
+    if cols ~= nil then ID_W = cols:get("id") end
+    FAV_X    = -(COL_PAD + FAV_W)                -- right-anchored x
+    STATUS_X = FAV_X - COL_GAP - STATUS_W
+    ID_X     = STATUS_X - COL_GAP - ID_W
+    NAME_W   = ID_X - COL_GAP - COL_PAD          -- negative = fill minus this
+end
+recalcCols()
 local headCells, headDiv, rowBgs = {}, nil, {}
 local listBg = nil
 local BG = { { 0x24/255, 0x21/255, 0x1E/255 }, { 0x2E/255, 0x2A/255, 0x26/255 } }  -- even, odd
@@ -333,7 +342,7 @@ end
 -- Column layout for list rows.
 local function placeCols(c, y)
     c.y = y
-    helpers.safe(function() c.name:SetPos(COL_PAD, y) end)
+    helpers.safe(function() c.name:SetSize(NAME_W, H.ROW_HEIGHT, 1.0, 0.0); c.name:SetPos(COL_PAD, y) end)
     placeId(c)
     if c.favIsText then
         -- header: "Fav" centred over the button column (measured)
@@ -371,6 +380,7 @@ local function layout()
     helpers.safe(function() copyLbl:SetPos(COL_PAD, y); copyBox:SetPos(COL_PAD + 44, y) end)
     y = y + H.BTN_H + 4
     placeCols(headCells, y)
+    if idHandle then idHandle:place(ID_X - COL_GAP // 2, y, H.ROW_HEIGHT, 1.0, 0.0) end
     y = y + H.ROW_HEIGHT
     helpers.safe(function() headDiv:SetPos(COL_PAD, y) end)
     y = y + 2
@@ -466,6 +476,11 @@ local function buildPanel(root)
     headCells = { favIsText = true,
         name = newText(root, NAME_W), idt = newText(root, ID_W),
         fav = newText(root, FAV_W) }
+    cols = helpers.columns("sounds", { id = { w = 44, min = 36, max = 160 } }, function()
+        recalcCols(); pcall(layout)
+    end)
+    recalcCols()
+    idHandle = cols:handle(root, "id", -1, "Drag to resize the Sound / ID columns (Settings > Column widths > Reset).")
     helpers.setText(headCells.name, H.gold("Sound"))
     helpers.setText(headCells.idt, H.gold("ID")); headCells.idW = tw("ID")
     helpers.setText(headCells.fav, H.gold("Fav")); headCells.favW = tw("Fav")
