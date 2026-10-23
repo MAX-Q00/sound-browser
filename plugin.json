@@ -1,0 +1,11 @@
+{
+  "name": "Sound Browser",
+  "version": "0.1.19",
+  "contactEmailAddress": "Dylan@quspace.agency",
+  "requiredDependencies": {},
+  "optionalDependencies": {},
+  "requiredPermissions": [],
+  "optionalPermissions": [],
+  "dependencies": {},
+  "hasRibbonIcon": true
+}
