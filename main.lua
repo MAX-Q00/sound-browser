@@ -16,7 +16,7 @@
 
 local PLUGIN_NAME = "Sound Browser"
 local helpers = require("ui_helpers")
-helpers.VERSION = "0.1.19"
+helpers.VERSION = "0.1.20"
 local H = helpers
 
 -------------------------------------------------------------------------------
@@ -360,7 +360,7 @@ local function layout()
     y = y + H.BTN_H + CTRL_GAP
     -- line 2: volume, Stop all with equal gaps
     local x = COL_PAD
-    for _, b in ipairs({ { volBtn, 128 }, { catBtn, 120 }, { stopBtn, 64 } }) do
+    for _, b in ipairs({ { volBtn, 140 }, { catBtn, 132 }, { stopBtn, 64 } }) do
         helpers.safe(function() b[1]:SetPos(x, y) end)
         x = x + b[2] + CTRL_GAP
     end
@@ -421,25 +421,21 @@ local function buildPanel(root)
         for _, b in ipairs(busList()) do if b == state.bus then okBus = true end end
         if not okBus then state.bus = "MASTER" end
     end
-    volBtn = helpers.button(root, 0, 0, 128, H.BTN_H, volLabel(), function()
-        local L = busList()
-        if #L == 0 then return end
-        local k = 1
-        for i, b in ipairs(L) do if b == state.bus then k = i end end
-        state.bus = L[k % #L + 1]; save()
-        helpers.setText(volBtn, volLabel(), "label")
+    -- 0.1.20: Bus and Type are RuneScape-style dropdowns (helpers.dropdown)
+    volBtn = helpers.dropdown(root, 0, 0, 140, H.BTN_H, { name = "bus",
+        options = function() local L = {}; for i, b in ipairs(busList()) do L[i] = "Bus: " .. b end; return L end,
+        get = function() for i, b in ipairs(busList()) do if b == state.bus then return i end end; return 1 end,
+        set = function(i) local L = busList(); if L[i] then state.bus = L[i]; save() end end })
+    helpers.setTip(volBtn.box, function()
+        return "Audio bus for previews: " .. state.bus .. ". MASTER follows only the master volume; SFX, MUSIC, AMBIENT and VOICEOVER follow their own sliders; the *_SUB buses are mixer sub-buses and may be silent. Pick one of the " .. #busList() .. " buses in audio.AudioBus."
     end)
-    helpers.setTip(volBtn, function()
-        return "Audio bus for previews: " .. state.bus .. ". MASTER follows only the master volume; SFX, MUSIC, AMBIENT and VOICEOVER follow their own sliders; the *_SUB buses are mixer sub-buses and may be silent. Click to cycle through the " .. #busList() .. " buses in audio.AudioBus."
-    end)
-    catBtn = helpers.button(root, 0, 0, 120, H.BTN_H, catLabel(), function()
-        state.cat = state.cat % #CATS + 1; save()
-        helpers.setText(catBtn, catLabel(), "label")
-        rebuildFilter(); goPage(1)
-    end)
-    helpers.setTip(catBtn, function()
+    do local L = {}; for i, c in ipairs(CATS) do L[i] = "Type: " .. c[1] end
+    catBtn = helpers.dropdown(root, 0, 0, 132, H.BTN_H, { name = "cat", options = L,
+        get = function() return state.cat end, set = function(i) state.cat = i; save() end,
+        onChange = function() rebuildFilter(); goPage(1) end }) end
+    helpers.setTip(catBtn.box, function()
         local w = CATS[state.cat][2]
-        return "Show one kind of sound, matched on words in the name" .. (w and (": " .. table.concat(w, ", ")) or "") .. ". Click to cycle."
+        return "Show one kind of sound, matched on words in the name" .. (w and (": " .. table.concat(w, ", ")) or "") .. "."
     end)
     copyLbl = newText(root, 44); helpers.setText(copyLbl, H.lbl("Copy"))
     helpers.safe(function() copyLbl:SetSize(44, H.BTN_H) end)
