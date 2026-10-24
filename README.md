@@ -23,3 +23,7 @@ By submitting a Plugin (as defined in Schedule 4 of the EULA), you acknowledge t
 ---
 
 Not affiliated with or endorsed by Jagex. RuneScape is a trademark of Jagex Ltd.
+
+## Music mode (0.1.29)
+Pick **Music** in the mode dropdown to browse all 1,403 RuneScape music tracks (names, IDs, areas, length and members flag from the RS Wiki track list, in rs_music_data.lua). Search by name, area or ID; filter free-to-play or members; Prev / Play / Stop / Next, Loop (off / track / list) and Shuffle. Tracks play with audio.Play(id, params) using SoundType.MUSIC. Loudness follows the game slider for the chosen bus, because the client mutes plugin audio below full volume.
+
