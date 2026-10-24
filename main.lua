@@ -16,7 +16,7 @@
 
 local PLUGIN_NAME = "Sound Browser"
 local helpers = require("ui_helpers")
-helpers.VERSION = "0.1.21"
+helpers.VERSION = "0.1.22"
 local H = helpers
 
 -------------------------------------------------------------------------------
